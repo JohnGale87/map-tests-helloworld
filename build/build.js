@@ -2,7 +2,7 @@
     baseUrl: '../js',
     paths: {
     	jquery: '../libs/jquery-2.1.4.min',
-    	cartodb: '../libs/cartodb'
+    	cartodb: '../libs/cartodb.min'
     },
     shim: {
     	cartodb: {
