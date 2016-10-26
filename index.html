@@ -6,7 +6,110 @@
 	</head>
 	<body>
 		<h1>Hello World</h1>
-		<script type="text/javascript" src="./libs/require.js"></script>
-		<script async type="text/javascript" src="./js/app.min.js"></script>
+		<!--<script type="text/javascript" src="./libs/require.js"></script>-->
+		<!--<script async type="text/javascript" src="./js/app.min.js"></script>-->
+		<script>
+		var TILE_SIZE = 256;
+		var ZOOM = 3;
+
+		var SCALE = 1 << ZOOM;
+		var LATLNGS = [{lat: 51.501476, lng: -0.140634, name: 'buckingham palace'},
+					   {lat: 41.850, lng: -87.650, name: 'chicago'},
+					   {lat: 0, lng: 0, name: 'centre'}];
+
+		function fromLng(lng){
+			return TILE_SIZE * (0.5 + (lng / 360));
+		}
+
+		function fromLat(lat){
+			// The mapping between latitude, longitude and pixels is defined by the web
+		    // mercator projection.
+			var siny = Math.sin((lat * Math.PI) / 180);
+
+			// Truncating to 0.9999 effectively limits latitude to 89.189. This is
+			// about a third of a tile past the edge of the world tile.
+			siny = Math.min(Math.max(siny, -0.9999), 0.9999);
+
+			var a = (1 + siny) / (1 - siny);
+			var b = Math.log(a);
+			var c = (0.5 - (b / (4 * Math.PI)));
+			var d = TILE_SIZE * c
+			return d;
+		}
+
+		function toPoint(latLng){
+	        var worldCoordinate = new google.maps.Point(fromLng(latLng.lng), fromLat(latLng.lat));
+
+	        var pixelCoordinate = new google.maps.Point(worldCoordinate.x * SCALE, worldCoordinate.y * SCALE);
+	        var flooredPixelCoordinate = new google.maps.Point(Math.floor(worldCoordinate.x * SCALE), Math.floor(worldCoordinate.y * SCALE));
+
+	        var div = document.createElement('div');
+	        div.innerHTML = 'pixelCoordinate: ' + flooredPixelCoordinate + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + latLng.name;
+	        document.body.appendChild(div);
+	        return pixelCoordinate;
+	    };
+
+	    function toLatLng(point){
+	    	var lat = toLat(point);
+	    	var lng = toLng(point);
+
+			var div = document.createElement('div');
+	        div.innerHTML = 'Lat coord: ' + lat + ', Lng coord: ' + lng;
+	        document.body.appendChild(div);
+	    }
+
+	    function toLat(point){
+	    	var a = point.y / SCALE;
+	    	var b = a / TILE_SIZE;
+	    	var c = b - 0.5;
+	    	var d = c * -1;
+	    	var e = d * (4 * Math.PI);
+	    	var f = Math.exp(e);
+	    	var fX = 1 - f;
+	    	var fY = 1 + f;
+	    	var fZ = fX / fY;
+	    	var g = -1 * fZ;
+
+	    	// TODO: maybe some kind of maximum / minimum truncation needs to happen here??
+	    	// console.log(g);
+	    	// g = Math.min(Math.max(g, -0.9999), 0.9999)
+
+	    	var h = Math.asin(g);
+	    	var i = 180 * h;
+	    	var j = i / Math.PI;
+
+	    	// var div = document.createElement('div');
+	        // div.innerHTML = 'Lat coord: ' + j;
+	        // document.body.appendChild(div);
+
+	        return j;
+	    };
+
+	    function toLng(point){
+	    	var a = point.x / SCALE;
+	    	var b = a / TILE_SIZE;
+	    	var c = b - 0.5;
+	    	var d = c * 360;
+
+	    	// var div = document.createElement('div');
+	        // div.innerHTML = 'Lng coord: ' + d;
+	        // document.body.appendChild(div);
+
+	        return d;
+	    };
+
+	    function init(){
+	    	var points = [];
+	    	for (var i=0; i < LATLNGS.length; i++){
+	    		points.push(toPoint(LATLNGS[i]));
+	    	}
+	    	document.body.appendChild(document.createElement('hr'));
+	    	for (var i=0; i < points.length; i++){
+	    		toLatLng(points[i]);
+	    		document.body.appendChild(document.createElement('br'));
+	    	}
+	    }
+		</script>
+		<script async defer src="http://maps.googleapis.com/maps/api/js?callback=init"></script>
 	</body>
 </html>
